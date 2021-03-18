@@ -6,8 +6,9 @@ useSystemBinaries=n
 # Use all online versions OR the list of mandatory versions
 useAllOnlineVersions=y
 mandatoryVersions="7.0.0 6.0.0 5.0.1 4.0.1 3.5.2"
-buildHead=y
+buildHead=n
 installSystemdService=n
+minVersion="11"
 
 echo "Options for this setup:"
 
@@ -36,15 +37,15 @@ else
     echo "* Install systemd service for server: NO"
 fi
 
-while true
-do
-    read -rp "Do you want to proceed? (Yn)" yn
-    case $yn in
-        [Nn]* ) exit;;
-        [Yy]* ) break;;
-        '' ) break;;
-    esac
-done
+#while true
+#do
+#    read -rp "Do you want to proceed? (Yn)" yn
+#    case $yn in
+#        [Nn]* ) exit;;
+#        [Yy]* ) break;;
+#        '' ) break;;
+#    esac
+#done
 
 formatted_array=""
 
@@ -56,18 +57,21 @@ function tar_flags {
 }
 
 function generate_source_url_from_version {
-    echo "http://llvm.org/releases/$1/cfe-$1.src.tar.xz"
+    echo "https://github.com/llvm/llvm-project/releases/download/llvmorg-$1/clang-$1.src.tar.xz"
 }
 
 function generate_binary_url_from_version {
     local ver
     ver=$1
     template_urls=""
-    template_urls+=" http://llvm.org/releases/$ver/clang+llvm-$ver-x86_64-linux-gnu-ubuntu-16.04.tar.xz"
-    template_urls+=" http://llvm.org/releases/$ver/clang+llvm-$ver-x86_64-linux-gnu-ubuntu16.04.tar.xz"
-    template_urls+=" http://llvm.org/releases/$ver/clang+llvm-$ver-x86_64-linux-gnu-ubuntu-14.04.tar.xz"
-    template_urls+=" http://llvm.org/releases/$ver/clang+llvm-$ver-x86_64-linux-gnu-ubuntu14.04.tar.xz"
-    template_urls+=" http://llvm.org/releases/$ver/clang+llvm-$ver-x86_64-linux-gnu-debian8.tar.xz"
+    template_urls+=" https://github.com/llvm/llvm-project/releases/download/llvmorg-$ver/clang+llvm-$ver-x86_64-linux-gnu-ubuntu-20.04.tar.xz"
+    #template_urls+=" http://llvm.org/releases/$ver/clang+llvm-$ver-x86_64-linux-gnu-ubuntu-20.04.tar.xz"
+    #template_urls+=" http://llvm.org/releases/$ver/clang+llvm-$ver-x86_64-linux-gnu-ubuntu-16.04.tar.xz"
+    #template_urls+=" http://llvm.org/releases/$ver/clang+llvm-$ver-x86_64-linux-gnu-ubuntu16.04.tar.xz"
+    #template_urls+=" http://llvm.org/releases/$ver/clang+llvm-$ver-x86_64-linux-gnu-ubuntu-14.04.tar.xz"
+    #template_urls+=" http://llvm.org/releases/$ver/clang+llvm-$ver-x86_64-linux-gnu-ubuntu14.04.tar.xz"
+    #template_urls+=" http://llvm.org/releases/$ver/clang+llvm-$ver-x86_64-linux-gnu-debian8.tar.xz"
+    #template_urls+=" http://llvm.org/releases/$ver/clang+llvm-$ver-x86_64-linux-gnu-debian10.tar.xz"
     set +e
     for url in $template_urls
     do
@@ -117,6 +121,7 @@ if [[ $useSystemBinaries == [Yy] ]]; then
         local_versions+="$version\n"
         #echo "Found local version: $version - ${clang_bin}"
         formatted_array+=" ${version},$(generate_source_url_from_version "${version}"),${clang_bin}"
+        echo formatted_array
     done
 
     echo "Found local versions"
@@ -126,8 +131,9 @@ fi
 
 versionsToGenerate=""
 if [[ $useAllOnlineVersions == [Yy] ]]; then
-    page_content=$(curl http://releases.llvm.org --compressed --silent)
-    online_versions=$(echo "$page_content" | grep -Po "['[0-9]+.*,\s+'[0-9\.]+']" | grep -Po "(([0-9]\.)+([0-9]))")
+    pushd ../..
+    online_versions=$(node get_clang_version.js $minVersion)
+    popd
 
     echo "Found versions on website:"
     echo "$online_versions" | column -c 50
@@ -212,10 +218,10 @@ done
 if [[ $buildHead == [yY] ]]; then
     echo "Building HEAD"
     temp_dir=$(mktemp -d)
-    git clone --depth 1 http://llvm.org/git/llvm.git "$temp_dir"
-    pushd "$temp_dir/tools"
-    git clone --depth 1 http://llvm.org/git/clang.git clang
-    popd
+    git clone --depth 1 https://github.com/llvm/llvm-project.git "$temp_dir"
+    #pushd "$temp_dir/tools"
+    #git clone --depth 1 http://llvm.org/git/clang.git clang
+    #popd
     pushd "$temp_dir"
     mkdir build
     cd build

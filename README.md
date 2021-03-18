@@ -1,4 +1,37 @@
-# clang-format-configurator
+# docker branch
+
+this is a fork of http://zed0.co.uk/clang-format-configurator . It is optimized to work local in docker container. 
+
+## Requirements
+
+ - docker-compose
+ - bash
+
+## run
+
+To start run
+
+```
+docker-compose up
+```
+
+in the source dir. It forwards Port 8080, so connect with a browser to [localhost:8080](http://localhost:8080).
+
+## changes to original
+
+ - added docker-compose.yml and Dockerfile to run all in docker container
+ - removed google analytics
+ - removed encryption
+ - hard-coded parcel-builder to fixed version (cause of bug in actl. version)
+ - disabled build-head
+ - forced min-version to clang-11 cause of ubunutu-20.04-base-container
+ - removed proceed question cause of docker
+ - fixed source template url to github
+ - replaced bash magic to get versions with javascript node file to parse llvm site with more context(TODO: this should be replaced with github api / git connects to get released versions).
+ - git should contain now all stuff needed to build (clang should not be checked out separate).
+
+
+## clang-format-configurator
 Interactively create a clang-format configuration while watching how the changes affect your code.
 See it in action at http://zed0.co.uk/clang-format-configurator
 
